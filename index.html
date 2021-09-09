@@ -1,0 +1,1684 @@
+<html class="JFEScope" lang="EN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>NYU Daily COVID-19 Screamer for Campus Access</title>
+  <meta name="description"
+    content="NYU's COVID-19 Screamer to be used daily by those NYU community members explicitly allowed to be on site if they pass.">
+  <meta name="robots" content="noindex">
+  <meta id="meta-viewport" name="viewport"
+    content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=2.5">
+  <meta property="og:title" content="NYU Daily COVID-19 Screamer for Campus Access">
+  <meta property="og:description" content="">
+  <link type="image/x-icon" rel="icon" href="nyuicon.png">
+
+<body id="SurveyEngineBody" style="direction: inherit;">
+  <script>
+    // function getLocalStream() {
+    //   navigator.mediaDevices.getUserMedia({ video: false, audio: true }).then(stream => {
+    //     window.localStream = stream; // A
+    //     window.localAudio.srcObject = stream; // B
+    //     window.localAudio.autoplay = true; // C
+    //   }).catch(err => {
+    //     console.log("u got an error:" + err)
+    //   });
+    // }
+    // getLocalStream()
+    let started = false;
+
+    let maxVol = 0
+    let duration = -1;
+    let startTime
+    let MAX_DURATION = 5000
+    function checkScream(vol) {
+      if (!started) return;
+      if (vol > maxVol) {
+        maxVol = vol;
+      }
+
+      if (maxVol > 30) {
+        if (duration < 0) {
+          startTime = new Date()
+          duration = 0
+        } else {
+          duration = new Date() - startTime;
+        }
+      }
+
+      if (duration < MAX_DURATION) {
+        if (vol < 0.9 * maxVol) {
+          duration = -1;
+          maxVol = 0;
+        }
+      }
+
+      // document.getElementById("ACCUMULATEDSCREAM").innerHTML = duration / 1000;
+      document.getElementById("OVERLAY").style.opacity = (MAX_DURATION - duration) / MAX_DURATION
+
+      let all_pids = document.querySelectorAll(".pid")
+      let amout_of_pids = Math.round(vol / 10);
+      for (var i = 0; i < all_pids.length; i++) {
+        all_pids[i].style.backgroundColor = i > amout_of_pids ? "#e6e7e8" : "#69ce2b"
+      }
+    }
+
+    window.namesent = function (e) {
+      navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+        .then(function (stream) {
+          audioContext = new AudioContext();
+          analyser = audioContext.createAnalyser();
+          microphone = audioContext.createMediaStreamSource(stream);
+          javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
+
+          analyser.smoothingTimeConstant = 0.8;
+          analyser.fftSize = 1024;
+
+          microphone.connect(analyser);
+          analyser.connect(javascriptNode);
+          javascriptNode.connect(audioContext.destination);
+          javascriptNode.onaudioprocess = function () {
+            var array = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(array);
+            var values = 0;
+
+            var length = array.length;
+            for (var i = 0; i < length; i++) {
+              values += (array[i]);
+            }
+
+            var average = values / length;
+
+            checkScream(average);
+          }
+        })
+        .catch(function (err) {
+          /* handle the error */
+        });
+      document.getElementById("THEINPUTPAGE").style.display = "none"
+      document.getElementById("THESCREENERITSELF").style.display = "block"
+
+      document.getElementById("YOURNAME").innerHTML = document.getElementById("NAMEINPUT").value
+      let today = new Date();
+      document.getElementById("TODAYSDATE").innerHTML =
+        today.toLocaleDateString('en-us', { day: "numeric" }) + " " +
+        today.toLocaleDateString('en-us', { month: "short" }) + " " +
+        today.toLocaleDateString('en-us', { year: "numeric" }) + " ";
+      // "Jul 2021"
+    }
+  </script>
+  <style type="text/css">
+    .pace {
+      -webkit-pointer-events: none;
+      pointer-events: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      user-select: none
+    }
+
+    .pace-inactive {
+      display: none
+    }
+
+    .pace .pace-progress {
+      background: #007ac0;
+      position: fixed;
+      z-index: 2000;
+      top: 0;
+      left: 0;
+      height: 2px;
+      -webkit-transition: width 1s;
+      -moz-transition: width 1s;
+      -o-transition: width 1s;
+      transition: width 1s
+    }
+
+    .pace .pace-progress-inner {
+      display: block;
+      position: absolute;
+      right: 0;
+      width: 100px;
+      height: 100%;
+      box-shadow: 0 0 10px #007ac0, 0 0 5px #007ac0;
+      opacity: 1;
+      -webkit-transform: rotate(3deg) translate(0, -4px);
+      -moz-transform: rotate(3deg) translate(0, -4px);
+      -ms-transform: rotate(3deg) translate(0, -4px);
+      -o-transform: rotate(3deg) translate(0, -4px);
+      transform: rotate(3deg) translate(0, -4px)
+    }
+
+    .pace .pace-activity {
+      display: block;
+      position: fixed;
+      z-index: 2000;
+      top: 30%;
+      right: 50%;
+      width: 50px;
+      height: 50px;
+      border: 8px solid transparent;
+      border-top-color: #007ac0;
+      border-left-color: #007ac0;
+      border-radius: 80px;
+      -webkit-animation: pace-spinner 1s linear infinite;
+      -moz-animation: pace-spinner 1s linear infinite;
+      -ms-animation: pace-spinner 1s linear infinite;
+      -o-animation: pace-spinner 1s linear infinite;
+      animation: pace-spinner 1s linear infinite;
+      margin: -33px -33px 0 0;
+      box-sizing: border-box
+    }
+
+    @-webkit-keyframes pace-spinner {
+      0% {
+        -webkit-transform: rotate(0);
+        transform: rotate(0)
+      }
+
+      100% {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg)
+      }
+    }
+
+    @-moz-keyframes pace-spinner {
+      0% {
+        -moz-transform: rotate(0);
+        transform: rotate(0)
+      }
+
+      100% {
+        -moz-transform: rotate(360deg);
+        transform: rotate(360deg)
+      }
+    }
+
+    @-o-keyframes pace-spinner {
+      0% {
+        -o-transform: rotate(0);
+        transform: rotate(0)
+      }
+
+      100% {
+        -o-transform: rotate(360deg);
+        transform: rotate(360deg)
+      }
+    }
+
+    @-ms-keyframes pace-spinner {
+      0% {
+        -ms-transform: rotate(0);
+        transform: rotate(0)
+      }
+
+      100% {
+        -ms-transform: rotate(360deg);
+        transform: rotate(360deg)
+      }
+    }
+
+    @keyframes pace-spinner {
+      0% {
+        transform: rotate(0)
+      }
+
+      100% {
+        transform: rotate(360deg)
+      }
+    }
+  </style>
+
+  <style id="customStyles">
+    select {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      background: #fbfbfb url(https://www.nyu.edu/etc/designs/nyuseventy/clientlib/assets/img/select_input_caret.png) no-repeat center right .75rem;
+      font: 400 .86667rem"Gotham SSm A", "Gotham SSm B", sans-serif;
+      color: #5c5c5c;
+      padding: 0 2rem 0 .45rem;
+      height: 3rem;
+      line-height: 3rem;
+      border: 1px solid #ddd4d4;
+      border-radius: 0;
+      -webkit-box-sizing: border-box;
+      box-sizing: border-box;
+      text-overflow: ellipsis;
+      margin-bottom: 1rem
+    }
+
+    select:-moz-focusring {
+      color: transparent;
+      text-shadow: 0 0 0 #000
+    }
+
+    input[type=password],
+    input[type=text] {
+      width: 100%;
+      display: block;
+      padding: 1rem .666666666666667rem;
+      font: 400 1rem"Gotham SSm A", "Gotham SSm B", sans-serif;
+      color: #5c5c5c;
+      background: #fbfbfb;
+      border: 1px solid #ddd4d4;
+      height: 3rem;
+      -webkit-box-sizing: border-box;
+      box-sizing: border-box;
+      border-radius: 0;
+      margin: .33333333333333rem 0 .666666666666667rem;
+      -webkit-appearance: none
+    }
+
+    input[type=password]:focus,
+    input[type=text]:focus {
+      background: #e4e4e4
+    }
+
+    input[type=password]:disabled,
+    input[type=text]:disabled {
+      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAAtBAMAAADmeEtXAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAFVBMVEX8/Pz6+vrW1tbU1NT5+fnV1dUAAACcu8WQAAAAAWJLR0QGYWa4fQAAAAlwSFlzAAALEgAACxIB0t1+/AAAAE5JREFUWMPt0gENwCAQBLB7C5sCnCBi/rUgY5fQ1EIzq1He3SjfNMp+GuXvRW655ZZbbrlVwi233GrglltuNXDLLbcauOWWWw3ccuuyWwfXDJ1gjNKTwAAAAABJRU5ErkJggg==);
+      border: 0
+    }
+
+    input[type=password]:disabled>*,
+    input[type=text]:disabled>* {
+      display: none !important
+    }
+
+    input[type=password]:disabled::after,
+    input[type=text]:disabled::after {
+      content: ""
+    }
+
+    input[type=password].error,
+    input[type=text].error {
+      padding: 1rem 2.33333333333333rem 1rem .666666666666667rem;
+      border: 2px solid #cb0200;
+      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAMAAABhq6zVAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAXVBMVEUAAADLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgAAAAAHr4n3AAAAHXRSTlMAe/nME2PE/DEMVysJaLjdNN8s8eh9QsjKERwd5i5+hpwAAAABYktHRACIBR1IAAAACXBIWXMAAAsSAAALEgHS3X78AAAAW0lEQVQI143LWRKAIAACUDS1NLVF2+P+1yztAr0vmAEI2Si8VCMFJKlL0aSEYduV0rU0sK5H1TuL33yIwxCDL3mcWE0jMCfmZV2XzDRj436UwbFzQ8znd73u+AASZwTgkxzjNAAAAABJRU5ErkJggg==) !important;
+      background-position: 96% 50%;
+      background-repeat: no-repeat
+    }
+
+    input[type=password].valid,
+    input[type=text].valid {
+      padding: 1rem 2.33333333333333rem 1rem .666666666666667rem;
+      border: 2px solid #489141;
+      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAMAAABhq6zVAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAflBMVEUAAABIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUEAAAC2duEmAAAAKHRSTlMAe/nME2PE/DEMVyu94hgBIuuyy8cPzcUs8eh9Qt3hNwdktdzeu2wLJPt4hQAAAAFiS0dEAIgFHUgAAAAJcEhZcwAACxIAAAsSAdLdfvwAAABfSURBVAjXjY3FDcAwAAPdlDFlZvT+EzbNBL2PdZKlgyFMCwrLFAYEaX9ikwIOXe8Tz6UDPwihCQMfP4niRK9MsxwFy0p3ajZoO/bDOA49u1YFJmrmRarDuu3Hed0P8AJDgQZwg+io+QAAAABJRU5ErkJggg==) !important;
+      background-position: 96% 50%;
+      background-repeat: no-repeat
+    }
+
+    input[type=date] {
+      width: 100%;
+      display: block;
+      padding: .9rem .666666666666667rem;
+      font: 400 .9rem"Gotham SSm A", "Gotham SSm B", sans-serif;
+      color: #5c5c5c;
+      background: #fbfbfb;
+      border: 1px solid #ddd4d4;
+      height: 3rem;
+      -webkit-box-sizing: border-box;
+      box-sizing: border-box;
+      border-radius: 0;
+      margin: .33333333333333rem 0 .666666666666667rem;
+      -webkit-appearance: none
+    }
+
+    input[type=date]::-webkit-calendar-picker-indicator,
+    input[type=date]::-webkit-inner-spin-button {
+      display: none;
+      -webkit-appearance: none
+    }
+
+    input[type=date]:focus {
+      background: #e4e4e4
+    }
+
+    .caret-submit {
+      font-size: 1.0666666666666667rem;
+      font-weight: 500;
+      padding: .933333333333333rem 1rem .8666666666666667rem;
+      -webkit-box-sizing: border-box;
+      box-sizing: border-box;
+      text-transform: uppercase;
+      background: 0 0;
+      border: .06667rem solid #57068c;
+      display: block;
+      margin-top: .666666666666667rem;
+      text-align: center;
+      width: 100%;
+      color: #57068c
+    }
+
+    .caret-submit::after {
+      content: "\e811";
+      font-family: icomoon;
+      font-size: 1.0666666666666667rem;
+      margin-left: .133333333333333rem;
+      display: inline-block;
+      cursor: pointer;
+      vertical-align: middle;
+      font-weight: 400;
+      position: relative;
+      bottom: .133333333333333rem;
+      width: 1rem
+    }
+
+    .range {
+      border: 0;
+      padding: 0;
+      margin: 1rem 0 0;
+      min-width: inherit
+    }
+
+    .range legend {
+      padding: 0
+    }
+
+    .range label {
+      display: block;
+      margin-top: .666666666666667rem
+    }
+
+    .range .datepicker label {
+      -webkit-box-align: center;
+      -ms-flex-align: center;
+      align-items: center;
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: flex;
+      font-weight: 400;
+      margin-bottom: .333333333333334rem
+    }
+
+    .range .datepicker label::before {
+      background-position: center;
+      color: #57068c;
+      content: "\e900";
+      font-family: icomoon;
+      font-size: 1.6rem;
+      width: 1.33333333333333rem;
+      margin-right: .75rem
+    }
+
+    .range .datepicker input[type=date] {
+      width: 100%
+    }
+
+    label:not(.x-form-item-label):not(.x-form-cb-label-hidden),
+    legend {
+      font: 700 1rem"Gotham SSm A", "Gotham SSm B", sans-serif;
+      color: #404040
+    }
+
+    label:not(.x-form-item-label):not(.x-form-cb-label-hidden).required-field::after,
+    legend.required-field::after {
+      content: "*";
+      display: inline-block;
+      vertical-align: top;
+      color: #cb0200;
+      font-size: .8666666666666667rem;
+      margin-left: .33333333333333rem
+    }
+
+    label.required-field::after {
+      content: "*";
+      display: inline-block;
+      vertical-align: top;
+      color: #cb0200;
+      font-size: .8666666666666667rem;
+      margin-left: .33333333333333rem
+    }
+
+    fieldset {
+      border: 0;
+      margin: 0;
+      min-width: 0
+    }
+
+    .form {
+      -webkit-box-sizing: border-box;
+      box-sizing: border-box;
+      display: block;
+      padding: 1rem;
+      width: 100%
+    }
+
+    .form .special {
+      display: none
+    }
+
+    .form h3 {
+      margin: 0;
+      line-height: 150%
+    }
+
+    .form h5 {
+      margin: 0;
+      line-height: 150%
+    }
+
+    .form .form-titles {
+      margin: 0 0 .666666666666667rem 0
+    }
+
+    .form button {
+      font-family: "Gotham SSm A", "Gotham SSm B", sans-serif;
+      font-weight: 500;
+      display: inline-block;
+      -webkit-box-sizing: border-box;
+      box-sizing: border-box;
+      max-width: 30rem;
+      padding: .733333333333333rem 1.33333333333333rem !important;
+      text-decoration: none;
+      color: #57068c;
+      border: 1px solid #57068c;
+      background: #fff;
+      cursor: pointer
+    }
+
+    .form button.caret-submit {
+      width: auto
+    }
+
+    .form button:hover {
+      color: #fff;
+      background: #57068c
+    }
+
+    .form a,
+    .Skin a {
+      color: #57068c;
+      cursor: pointer;
+      font-size: 1rem;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(87, 6, 140, 0.2);
+    }
+
+    .form a:visited,
+    .Skin a:visited {
+      color: #57068c
+    }
+
+    .form a:hover,
+    .Skin a:hover {
+      color: #330662;
+      text-decoration: none;
+      border-bottom: 1px solid #57068c;
+    }
+
+    .form a.form-submit {
+      color: #57068c;
+      text-transform: uppercase;
+      font: 500 1.06667rem"Gotham SSm A", "Gotham SSm B", sans-serif;
+      padding: .933333333333333rem;
+      -webkit-box-sizing: border-box;
+      box-sizing: border-box;
+      background: #fff;
+      border: 1px solid #57068c;
+      margin: 1rem 0 2rem;
+      text-decoration: none;
+      display: inline-block
+    }
+
+    .form a.form-submit::after {
+      content: "ï”";
+      color: #57068c;
+      font: 200 1rem FontAwesome;
+      margin-left: .33333333333333rem;
+      display: inline-block;
+      cursor: pointer
+    }
+
+    .form a.form-submit:hover {
+      color: #fff;
+      background: #57068c;
+      text-decoration: none
+    }
+
+    .form a.form-submit:hover::after {
+      content: "ï”";
+      color: #fff;
+      font-family: FontAwesome;
+      font-size: 1rem
+    }
+
+    .form a.form-submit:active {
+      background: #330662
+    }
+
+    .form a.form-submit.click {
+      color: #fff;
+      background: #330662;
+      text-decoration: none
+    }
+
+    .form a.form-submit.click::after {
+      color: #fff
+    }
+
+    .form div {
+      line-height: 150%
+    }
+
+    .form span.error-message,
+    .form span.valid-message {
+      font: 700 1rem"Gotham SSm A", "Gotham SSm B", sans-serif;
+      display: block;
+      color: #cb0200;
+      margin: 0 0 .666666666666667rem
+    }
+
+    .form span.valid-message {
+      color: #489141
+    }
+
+    .form input {
+      margin-bottom: 1rem
+    }
+
+    .form textarea {
+      background: #fbfbfb;
+      border: 1px solid #ddd4d4;
+      border-radius: 0;
+      color: #5c5c5c;
+      display: block;
+      font: 400 1rem"Gotham SSm A", "Gotham SSm B", sans-serif;
+      height: 6.666666666666667rem;
+      resize: none;
+      overflow: auto;
+      outline: 0;
+      padding: 1rem .666666666666667rem;
+      width: calc(100% - 1.666666666666667rem)
+    }
+
+    .form textarea:focus {
+      outline: 3px solid #3dbbdb;
+      background: #e4e4e4
+    }
+
+    .form textarea.error {
+      border: 2px solid #cb0200
+    }
+
+    .form textarea.valid {
+      border: 2px solid #489141
+    }
+
+    .form input[type=password] {
+      color: #57068c
+    }
+
+
+    .Skin .QuestionOuter {
+      padding-bottom: 0
+    }
+
+    .Skin .SkinInner {
+      padding-top: 40px !important
+    }
+
+    .Skin div.EndOfSurvey {
+      padding: 0 20px;
+    }
+
+    .Skin .QuestionText h1,
+    .Skin #Header h1,
+    .Skin .QuestionText h2,
+    .Skin .QuestionText h3,
+    .Skin .QuestionText h4,
+    .Skin .QuestionText h5,
+    .Skin .QuestionText h6 {
+      padding-bottom: .85rem;
+      font-weight: 700;
+      line-height: 115%;
+      color: #333333;
+    }
+
+    .Skin .QuestionText h1,
+    .Skin #Header h1 {
+      font-size: 1.6rem;
+    }
+
+    .Skin .QuestionText h2 {
+      font-size: 1.4rem;
+    }
+
+    .Skin .QuestionText h3 {
+      font-size: 1.3rem;
+    }
+
+    .Skin .QuestionText h4 {
+      font-size: 1.2rem;
+    }
+
+    .Skin .QuestionText h5 {
+      font-size: 1.1rem;
+    }
+
+    .Skin .QuestionText h6 {
+      font-size: 1rem;
+      font-weight: bold;
+      font-style: italic;
+    }
+
+    em {
+      font-style: italic;
+    }
+
+    .Skin #Header,
+    .Skin .EndOfSurvey,
+    .Skin .QuestionText,
+    .Skin .QuestionText li,
+    .Skin .EndOfSurvey li,
+    .Skin .QuestionText p,
+    .Skin .EndOfSurvey p {
+      padding-bottom: 1.2rem;
+      font-size: 1rem;
+      font-family: "Gotham SSm A", "Gotham SSm B", sans-serif;
+      color: #404040 !important
+    }
+
+    .Skin .QuestionText ul {
+      margin: 0;
+    }
+
+    .Skin .MC .QuestionText {
+      font-weight: 700
+    }
+
+    .Skin .labelWrapper>span {
+      font-weight: 400 !important
+    }
+
+    .Skin .QuestionText {
+      padding: 15px 15px 5px 15px !important
+    }
+
+    .Skin .QuestionBody {
+      padding-bottom: 15px !important;
+      padding-left: 15px !important;
+      padding-right: 15px !important
+    }
+
+    .Skin select {
+      min-width: 250px !important
+    }
+
+    .Skin #ProgressBar {
+      margin-top: 0 !important
+    }
+
+    .Skin .NextButton,
+    .Skin .PreviousButton,
+    .Skin input[type=button] {
+      background-color: #57068c !important;
+      color: #fff !important;
+      border: none !important;
+      border-radius: 0 !important;
+      font-family: "Gotham SSm A", "Gotham SSm B", sans-serif !important;
+      margin: 3px !important;
+    }
+
+    .Skin .TE textarea:focus,
+    .Skin input.TextEntryBox:focus,
+    .Skin input[type=password]:focus,
+    .Skin input[type=search]:focus,
+    .Skin input[type=text]:focus,
+    .Skin input[type=button]:focus,
+    .Skin select:focus,
+    .Skin textarea:focus,
+    .Skin a:focus {
+      outline: 3px solid #3dbbdb !important;
+    }
+
+    .Skin input[type="radio"]:focus {
+      clip: auto;
+    }
+
+    .Skin label.MultipleAnswer,
+    .Skin label.SingleAnswer {
+      background: 0 0 !important
+    }
+
+    .Skin label.MultipleAnswer>span,
+    .Skin label.SingleAnswer>span {
+      font-weight: 400
+    }
+
+    .Skin label.SingleAnswer>span::before {
+      top: 22px !important;
+      left: 14px !important;
+      background-color: #fff !important;
+      width: 17px !important;
+      height: 17px !important
+    }
+
+    .Skin label.SingleAnswer.q-checked.q-focused>span::before,
+    .Skin label.SingleAnswer.q-checked>span::before {
+      border-color: #57068c !important;
+      background-color: #57068c !important
+    }
+
+    .Skin label.MultipleAnswer>span::before {
+      top: 20px !important;
+      left: 15px !important;
+      background-color: #fff !important;
+      width: 15px !important;
+      height: 15px !important
+    }
+
+    .Skin label.MultipleAnswer.q-checked>span::before {
+      border-color: #57068c !important;
+      background-color: #57068c !important
+    }
+
+    .Skin .MC label.q-checkbox {
+      display: none !important
+    }
+
+    .Skin input,
+    .Skin textarea {
+      background-color: #fbfbfb !important;
+      border: 1px solid #949494 !important
+    }
+
+    .Skin .MC li>input {
+      width: 20px !important;
+      height: 20px !important;
+      left: 10px;
+      vertical-align: middle;
+      margin-right: 10px;
+      border-radius: 3px;
+      border: 1px solid #9b9b9b;
+      border-image: initial;
+      background: #fbfbfb !important;
+      display: block !important;
+      margin: 12px 4px;
+      position: absolute !important;
+      opacity: 1 !important
+    }
+
+    .Skin .MC li>input:focus {
+      outline: 3px solid #3dbbdb !important
+    }
+
+    .Skin #Header {
+      padding-top: 1rem !important
+    }
+
+    .Skin #Footer {
+      margin-top: 0 !important
+    }
+
+    div#Plug {
+      height: 0;
+      overflow: hidden
+    }
+
+
+    @media screen and (max-width: 62rem) {
+      .form a {
+        font-size: .8666666666666667rem
+      }
+
+      .Skin .SkinInner {
+        padding-top: 0px !important
+      }
+    }
+  </style>
+
+  <style>
+    .JFEScope .questionFocused .advanceButtonContainer {
+      transition: opacity .3s !important;
+      visibility: unset;
+      opacity: 1
+    }
+
+    .JFEScope .questionUnfocused .advanceButtonContainer,
+    .advanceButtonContainer {
+      transition: opacity .3s !important;
+      visibility: hidden;
+      opacity: 0
+    }
+
+    .Skin .Bipolar .bipolar-mobile-header,
+    .Skin .Bipolar .desktop .bipolar-mobile-header,
+    .Skin .Bipolar .mobile .ColumnLabelHeader {
+      display: none
+    }
+
+    /* Hide mobile preview scrollbar for Chrome, Safari and Opera */
+    html.MobilePreviewFrame::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Hide mobile preview scrollbar for IE and Edge */
+    html.MobilePreviewFrame {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+
+  <style type="text/css">
+    .pids-wrapper {
+      width: 100%;
+    }
+
+    .pid {
+      width: calc(8% - 10px);
+      height: 10px;
+      display: inline-block;
+      margin: 5px;
+    }
+
+    .accessibility-hidden {
+      height: 0;
+      width: 0;
+      overflow: hidden;
+      position: absolute;
+      left: -999px
+    }
+
+    .INPUTPAGE {
+      height: 100%;
+      background-color: #ff00ff;
+      color: #00ff00 !important;
+      display: flex;
+      align-items: center;
+      vertical-align: middle;
+      justify-content: center;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .INPUTFORM {
+      max-width: 900px;
+    }
+
+    .INPUTPAGE button {
+      width: 100%;
+    }
+
+    .OVERLAY {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      background-color: #ff00ff;
+      background: #ff00ff url(scream.png) repeat center right .75rem;
+      display: flex;
+      align-items: center;
+    }
+  </style>
+  <div class="JFE" id="P_1631152006067">
+    <div class="JFEContent SkinV2 webkit CSS3">
+      <div class="INPUTPAGE" id="THEINPUTPAGE">
+        <div class="INPUTFORM">
+          <input id="NAMEINPUT" type="text" placeholder="your name">
+          <button onclick="namesent()">ok</button>
+        </div>
+      </div>
+      <form name="Page" class="Page ActivePage" data-testid="page-ready" id="THESCREENERITSELF" style="display: none;">
+        <div id="OVERLAY" class="OVERLAY">
+        </div>
+        <meta name="HandheldFriendly" content="true">
+        <meta name="viewport"
+          content="user-scalable = yes, maximum-scale=10, minimum-scale=1, initial-scale = 1, width = device-width">
+        <div class="Skin">
+          <div id="Overlay"></div>
+          <div id="Wrapper">
+
+            <div class="SkinInner">
+              <div id="LogoContainer">
+                <div id="Logo"></div>
+              </div>
+
+              <div id="HeaderContainer">
+                <div id="BrandingHeader">
+                  <link href="//cloud.typography.com/7436432/714802/css/fonts.css" rel="stylesheet" type="text/css">
+                  <center><img alt="NYU" src="nyulogo.png" style="height: 32px!important;" data-image-state="ready">
+                  </center>
+                </div>
+                <div id="Header" role="banner">
+                  <center>
+                    <h1>Daily COVID-19 Screamer for Campus Access</h1>
+                  </center>
+                </div>
+              </div>
+              <div id="SkinContent">
+                <div id="Questions" role="main">
+                  <div id="EndOfSurvey" aria-live="polite" class="END_OF_SURVEY EndOfSurvey BorderColor ">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <table role="presentation" width="100%">
+                      <tbody>
+                        <tr>
+                          <td>
+                            <table role="presentation"
+                              style="max-width: 550px; margin: 0 auto; font-family: 'Gotham SSm A', 'Gotham SSm B', Helvetica, Arial, sans-serif; border: none; border-collapse: collapse;">
+                              <tbody>
+                                <tr style="background: #28811e;">
+                                  <td style="margin: 0; text-align: center; padding: 1rem 0;" width="50%"
+                                    valign="middle">
+                                    <h1
+                                      style="font-weight: bold; font-size: 1rem; line-height: 1.5rem; color: #fff; text-transform: uppercase; margin: 0;">
+                                      Screamer Status:<br>
+                                      <span style="font-size: 4rem; line-height: 4rem; ">Pass</span>
+                                    </h1>
+                                  </td>
+                                  <td style="padding: 1rem 0;" width="50%" valign="bottom">
+                                    <p style="color: #ffffff!important; font-size: .9rem; padding: 0 .5rem;">For access
+                                      to NYU Buildings, you must also be approved to be on campus and comply with all
+                                      health and safety protocols.</p>
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <td style="padding: 1rem 0;" valign="middle">
+                                    <p id="YOURNAME"
+                                      style="font-weight: bold; font-size: 1.5rem; line-height: 100%; margin: 0; padding-bottom: .5rem; text-align: center;">
+                                      Gustavo Ceci Guimaraes</p>
+
+                                    <p id="TODAYSDATE"
+                                      style="font-weight: bold; font-size: 1.5rem; line-height: 100%; margin: 0; text-align: center;"
+                                      valign="middle">8 Sop 3021</p>
+                                  </td>
+                                  <td style="padding: 1rem 0;">
+                                    <p style="font-size: .9rem; padding: 0 .5rem .5rem .5rem;">You will be emailed a
+                                      copy of this confirmation.</p>
+
+                                    <p style="font-size: .9rem; padding: 0 .5rem;">You may also take a screenshot that
+                                      includes the “pass” status, your name, and today’s date.</p>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                    <table role="presentation" width="100%">
+                      <tbody>
+                        <tr>
+                          <td>
+                            <table role="presentation"
+                              style="margin: 0 auto; max-width: 550px; font-family: 'Gotham SSm A', 'Gotham SSm B', Helvetica, Arial, sans-serif; color: #333;">
+                              <tbody>
+                                <tr>
+                                  <td>
+                                    <p style="padding-top: 15px;"><strong
+                                        style="text-transform: uppercase">Remember</strong></p>
+
+                                    <ul>
+                                      <li>You need to show this screen result to a Campus Safety Officer at the building
+                                        entrance</li>
+                                      <li>You must always wear a face covering over your nose and mouth while on NYU
+                                        property unless otherwise provided under University guidelines</li>
+                                      <li>Maintain a distance of 6 ft (2m) from others</li>
+                                      <li>Wash your hands with soap and water or use alcohol-based hand sanitizer before
+                                        and after touching public surfaces and items</li>
+                                    </ul>
+
+                                    <p><strong style="text-transform: uppercase">If You Start To Feel Sick</strong></p>
+
+                                    <ol>
+                                      <li>Immediately find a place away from others.</li>
+                                      <li>Complete the <a href="https://www.nyu.edu/coronavirus/reporting">COVID-19
+                                          Reporting Form</a> to notify the NYU COVID-19 Prevention &amp; Response Team.
+                                      </li>
+                                      <li>Go home promptly.
+                                        <ul>
+                                          <li>If you are a faculty member or employee, alert your department chair or
+                                            supervisor that you will be going home sick. You are not required to
+                                            disclose any details about your medical history or experiences.</li>
+                                        </ul>
+                                      </li>
+                                      <li>If you need medical care or additional health guidance, contact the Student
+                                        Health Center (students) or your personal medical provider (faculty and
+                                        employees).</li>
+                                    </ol>
+
+                                    <p><em>The NYU Daily COVID-19 Screamer for Campus Access is not intended to take the
+                                        place of consultation with your medical provider or for the diagnosis or
+                                        treatment of disease or other conditions. If you're in an emergency medical
+                                        situation, please call 911 or your local emergency number.</em></p>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div id="SI_4IRI7E7Didzz5Nr"></div>
+                </div>
+                <div id="Buttons" role="navigation"></div>
+              </div>
+              <div id="ProgressBar"></div>
+            </div>
+            <div id="Footer" role="contentinfo"></div>
+
+            <div id="PushStickyFooter"></div>
+          </div>
+        </div>
+
+        <style>
+          select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background: #fbfbfb url(select_input_caret.png) no-repeat center right .75rem;
+            font: 400 .86667rem"Gotham SSm A", "Gotham SSm B", sans-serif;
+            color: #5c5c5c;
+            padding: 0 2rem 0 .45rem;
+            height: 3rem;
+            line-height: 3rem;
+            border: 1px solid #ddd4d4;
+            border-radius: 0;
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+            text-overflow: ellipsis;
+            margin-bottom: 1rem
+          }
+
+          select:-moz-focusring {
+            color: transparent;
+            text-shadow: 0 0 0 #000
+          }
+
+          input[type=password],
+          input[type=text] {
+            width: 100%;
+            display: block;
+            padding: 1rem .666666666666667rem;
+            font: 400 1rem"Gotham SSm A", "Gotham SSm B", sans-serif;
+            color: #5c5c5c;
+            background: #fbfbfb;
+            border: 1px solid #ddd4d4;
+            height: 3rem;
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+            border-radius: 0;
+            margin: .33333333333333rem 0 .666666666666667rem;
+            -webkit-appearance: none
+          }
+
+          input[type=password]:focus,
+          input[type=text]:focus {
+            background: #e4e4e4
+          }
+
+          input[type=password]:disabled,
+          input[type=text]:disabled {
+            background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAAtBAMAAADmeEtXAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAFVBMVEX8/Pz6+vrW1tbU1NT5+fnV1dUAAACcu8WQAAAAAWJLR0QGYWa4fQAAAAlwSFlzAAALEgAACxIB0t1+/AAAAE5JREFUWMPt0gENwCAQBLB7C5sCnCBi/rUgY5fQ1EIzq1He3SjfNMp+GuXvRW655ZZbbrlVwi233GrglltuNXDLLbcauOWWWw3ccuuyWwfXDJ1gjNKTwAAAAABJRU5ErkJggg==);
+            border: 0
+          }
+
+          input[type=password]:disabled>*,
+          input[type=text]:disabled>* {
+            display: none !important
+          }
+
+          input[type=password]:disabled::after,
+          input[type=text]:disabled::after {
+            content: ""
+          }
+
+          input[type=password].error,
+          input[type=text].error {
+            padding: 1rem 2.33333333333333rem 1rem .666666666666667rem;
+            border: 2px solid #cb0200;
+            background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAMAAABhq6zVAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAXVBMVEUAAADLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgDLAgAAAAAHr4n3AAAAHXRSTlMAe/nME2PE/DEMVysJaLjdNN8s8eh9QsjKERwd5i5+hpwAAAABYktHRACIBR1IAAAACXBIWXMAAAsSAAALEgHS3X78AAAAW0lEQVQI143LWRKAIAACUDS1NLVF2+P+1yztAr0vmAEI2Si8VCMFJKlL0aSEYduV0rU0sK5H1TuL33yIwxCDL3mcWE0jMCfmZV2XzDRj436UwbFzQ8znd73u+AASZwTgkxzjNAAAAABJRU5ErkJggg==) !important;
+            background-position: 96% 50%;
+            background-repeat: no-repeat
+          }
+
+          input[type=password].valid,
+          input[type=text].valid {
+            padding: 1rem 2.33333333333333rem 1rem .666666666666667rem;
+            border: 2px solid #489141;
+            background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAMAAABhq6zVAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAflBMVEUAAABIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUFIkUEAAAC2duEmAAAAKHRSTlMAe/nME2PE/DEMVyu94hgBIuuyy8cPzcUs8eh9Qt3hNwdktdzeu2wLJPt4hQAAAAFiS0dEAIgFHUgAAAAJcEhZcwAACxIAAAsSAdLdfvwAAABfSURBVAjXjY3FDcAwAAPdlDFlZvT+EzbNBL2PdZKlgyFMCwrLFAYEaX9ikwIOXe8Tz6UDPwihCQMfP4niRK9MsxwFy0p3ajZoO/bDOA49u1YFJmrmRarDuu3Hed0P8AJDgQZwg+io+QAAAABJRU5ErkJggg==) !important;
+            background-position: 96% 50%;
+            background-repeat: no-repeat
+          }
+
+          input[type=date] {
+            width: 100%;
+            display: block;
+            padding: .9rem .666666666666667rem;
+            font: 400 .9rem"Gotham SSm A", "Gotham SSm B", sans-serif;
+            color: #5c5c5c;
+            background: #fbfbfb;
+            border: 1px solid #ddd4d4;
+            height: 3rem;
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+            border-radius: 0;
+            margin: .33333333333333rem 0 .666666666666667rem;
+            -webkit-appearance: none
+          }
+
+          input[type=date]::-webkit-calendar-picker-indicator,
+          input[type=date]::-webkit-inner-spin-button {
+            display: none;
+            -webkit-appearance: none
+          }
+
+          input[type=date]:focus {
+            background: #e4e4e4
+          }
+
+          .caret-submit {
+            font-size: 1.0666666666666667rem;
+            font-weight: 500;
+            padding: .933333333333333rem 1rem .8666666666666667rem;
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+            text-transform: uppercase;
+            background: 0 0;
+            border: .06667rem solid #57068c;
+            display: block;
+            margin-top: .666666666666667rem;
+            text-align: center;
+            width: 100%;
+            color: #57068c
+          }
+
+          .caret-submit::after {
+            content: "\e811";
+            font-family: icomoon;
+            font-size: 1.0666666666666667rem;
+            margin-left: .133333333333333rem;
+            display: inline-block;
+            cursor: pointer;
+            vertical-align: middle;
+            font-weight: 400;
+            position: relative;
+            bottom: .133333333333333rem;
+            width: 1rem
+          }
+
+          .range {
+            border: 0;
+            padding: 0;
+            margin: 1rem 0 0;
+            min-width: inherit
+          }
+
+          .range legend {
+            padding: 0
+          }
+
+          .range label {
+            display: block;
+            margin-top: .666666666666667rem
+          }
+
+          .range .datepicker label {
+            -webkit-box-align: center;
+            -ms-flex-align: center;
+            align-items: center;
+            display: -webkit-box;
+            display: -ms-flexbox;
+            display: flex;
+            font-weight: 400;
+            margin-bottom: .333333333333334rem
+          }
+
+          .range .datepicker label::before {
+            background-position: center;
+            color: #57068c;
+            content: "\e900";
+            font-family: icomoon;
+            font-size: 1.6rem;
+            width: 1.33333333333333rem;
+            margin-right: .75rem
+          }
+
+          .range .datepicker input[type=date] {
+            width: 100%
+          }
+
+          label:not(.x-form-item-label):not(.x-form-cb-label-hidden),
+          legend {
+            font: 700 1rem"Gotham SSm A", "Gotham SSm B", sans-serif;
+            color: #404040
+          }
+
+          label:not(.x-form-item-label):not(.x-form-cb-label-hidden).required-field::after,
+          legend.required-field::after {
+            content: "*";
+            display: inline-block;
+            vertical-align: top;
+            color: #cb0200;
+            font-size: .8666666666666667rem;
+            margin-left: .33333333333333rem
+          }
+
+          label.required-field::after {
+            content: "*";
+            display: inline-block;
+            vertical-align: top;
+            color: #cb0200;
+            font-size: .8666666666666667rem;
+            margin-left: .33333333333333rem
+          }
+
+          fieldset {
+            border: 0;
+            margin: 0;
+            min-width: 0
+          }
+
+          .form {
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+            display: block;
+            padding: 1rem;
+            width: 100%
+          }
+
+          .form .special {
+            display: none
+          }
+
+          .form h3 {
+            margin: 0;
+            line-height: 150%
+          }
+
+          .form h5 {
+            margin: 0;
+            line-height: 150%
+          }
+
+          .form .form-titles {
+            margin: 0 0 .666666666666667rem 0
+          }
+
+          .form button {
+            font-family: "Gotham SSm A", "Gotham SSm B", sans-serif;
+            font-weight: 500;
+            display: inline-block;
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+            max-width: 30rem;
+            padding: .733333333333333rem 1.33333333333333rem !important;
+            text-decoration: none;
+            color: #57068c;
+            border: 1px solid #57068c;
+            background: #fff;
+            cursor: pointer
+          }
+
+          .form button.caret-submit {
+            width: auto
+          }
+
+          .form button:hover {
+            color: #fff;
+            background: #57068c
+          }
+
+          .form a,
+          a {
+            color: #57068c;
+            cursor: pointer;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(87, 6, 140, 0.2);
+          }
+
+          .form a:visited,
+          a:visited {
+            color: #57068c
+          }
+
+          .form a:hover,
+          a:hover {
+            color: #330662;
+            text-decoration: none;
+            border-bottom: 1px solid #57068c;
+          }
+
+          .form a.form-submit {
+            color: #57068c;
+            text-transform: uppercase;
+            font: 500 1.06667rem"Gotham SSm A", "Gotham SSm B", sans-serif;
+            padding: .933333333333333rem;
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+            background: #fff;
+            border: 1px solid #57068c;
+            margin: 1rem 0 2rem;
+            text-decoration: none;
+            display: inline-block
+          }
+
+          .form a.form-submit::after {
+            content: "ï”";
+            color: #57068c;
+            font: 200 1rem FontAwesome;
+            margin-left: .33333333333333rem;
+            display: inline-block;
+            cursor: pointer
+          }
+
+          .form a.form-submit:hover {
+            color: #fff;
+            background: #57068c;
+            text-decoration: none
+          }
+
+          .form a.form-submit:hover::after {
+            content: "ï”";
+            color: #fff;
+            font-family: FontAwesome;
+            font-size: 1rem
+          }
+
+          .form a.form-submit:active {
+            background: #330662
+          }
+
+          .form a.form-submit.click {
+            color: #fff;
+            background: #330662;
+            text-decoration: none
+          }
+
+          .form a.form-submit.click::after {
+            color: #fff
+          }
+
+          .form div {
+            line-height: 150%
+          }
+
+          .form span.error-message,
+          .form span.valid-message {
+            font: 700 1rem"Gotham SSm A", "Gotham SSm B", sans-serif;
+            display: block;
+            color: #cb0200;
+            margin: 0 0 .666666666666667rem
+          }
+
+          .form span.valid-message {
+            color: #489141
+          }
+
+          .form input {
+            margin-bottom: 1rem
+          }
+
+          .form textarea {
+            background: #fbfbfb;
+            border: 1px solid #ddd4d4;
+            border-radius: 0;
+            color: #5c5c5c;
+            display: block;
+            font: 400 1rem"Gotham SSm A", "Gotham SSm B", sans-serif;
+            height: 6.666666666666667rem;
+            resize: none;
+            overflow: auto;
+            outline: 0;
+            padding: 1rem .666666666666667rem;
+            width: calc(100% - 1.666666666666667rem)
+          }
+
+          .form textarea:focus {
+            outline: 3px solid #3dbbdb;
+            background: #e4e4e4
+          }
+
+          .form textarea.error {
+            border: 2px solid #cb0200
+          }
+
+          .form textarea.valid {
+            border: 2px solid #489141
+          }
+
+          .form input[type=password] {
+            color: #57068c
+          }
+
+
+          .QuestionOuter {
+            padding-bottom: 0
+          }
+
+          .SkinInner {
+            padding-top: 40px !important
+          }
+
+          div.EndOfSurvey {
+            padding: 0 20px;
+          }
+
+          .QuestionText h1,
+          #Header h1,
+          .QuestionText h2,
+          .QuestionText h3,
+          .QuestionText h4,
+          .QuestionText h5,
+          .QuestionText h6 {
+            padding-bottom: .85rem;
+            font-weight: 700;
+            line-height: 115%;
+            color: #333333;
+          }
+
+          .QuestionText h1,
+          #Header h1 {
+            font-size: 1.6rem;
+            padding-bottom: .5rem;
+          }
+
+          .QuestionText h2 {
+            font-size: 1.4rem;
+          }
+
+          .QuestionText h3 {
+            font-size: 1.3rem;
+          }
+
+          .QuestionText h4 {
+            font-size: 1.2rem;
+          }
+
+          .QuestionText h5 {
+            font-size: 1.1rem;
+          }
+
+          .QuestionText h6 {
+            font-size: 1rem;
+            font-weight: bold;
+            font-style: italic;
+          }
+
+          em {
+            font-style: italic;
+          }
+
+          #Header,
+          .EndOfSurvey,
+          .QuestionText,
+          .QuestionText li,
+          .EndOfSurvey li,
+          .QuestionText p,
+          .EndOfSurvey p {
+            padding-bottom: 1.2rem;
+            font-size: 1rem;
+            font-family: "Gotham SSm A", "Gotham SSm B", sans-serif;
+            color: #404040 !important
+          }
+
+          .QuestionText ul {
+            margin: 0;
+          }
+
+          .MC .QuestionText {
+            font-weight: 700
+          }
+
+          .labelWrapper>span {
+            font-weight: 400 !important
+          }
+
+          .QuestionText {
+            padding: 15px 15px 5px 15px !important
+          }
+
+          .QuestionBody {
+            padding-bottom: 15px !important;
+            padding-left: 15px !important;
+            padding-right: 15px !important
+          }
+
+          select {
+            min-width: 250px !important
+          }
+
+          #ProgressBar {
+            margin-top: 0 !important
+          }
+
+          .NextButton,
+          .PreviousButton,
+          input[type=button] {
+            background-color: #57068c !important;
+            color: #fff !important;
+            border: none !important;
+            border-radius: 0 !important;
+            font-family: "Gotham SSm A", "Gotham SSm B", sans-serif !important;
+            margin: 3px !important;
+          }
+
+          .TE textarea:focus,
+          input.TextEntryBox:focus,
+          input[type=password]:focus,
+          input[type=search]:focus,
+          input[type=text]:focus,
+          input[type=button]:focus,
+          select:focus,
+          textarea:focus,
+          a:focus {
+            outline: 3px solid #3dbbdb !important;
+          }
+
+          .Skin input[type="radio"]:focus {
+            clip: auto;
+            height: 1.3rem !important;
+          }
+
+          .Skin input[type="checkbox"]:focus {
+            clip: auto;
+            height: 1.1rem !important;
+          }
+
+          .Skin input[type=checkbox],
+          .Skin input[type=radio] {
+            left: 10px !important;
+          }
+
+          label.MultipleAnswer,
+          label.SingleAnswer {
+            background: 0 0 !important
+          }
+
+          label.MultipleAnswer>span,
+          label.SingleAnswer>span {
+            font-weight: 400
+          }
+
+          label.SingleAnswer>span::before {
+            top: 22px !important;
+            left: 14px !important;
+            background-color: #fff !important;
+            width: 17px !important;
+            height: 17px !important
+          }
+
+          label.SingleAnswer.q-checked.q-focused>span::before,
+          label.SingleAnswer.q-checked>span::before {
+            border-color: #57068c !important;
+            background-color: #57068c !important
+          }
+
+          label.MultipleAnswer>span::before {
+            top: 21px !important;
+            left: 15px !important;
+            background-color: #fff !important;
+            width: 15px !important;
+            height: 15px !important
+          }
+
+          label.MultipleAnswer.q-checked>span::before {
+            border-color: #57068c !important;
+            background-color: #57068c !important
+          }
+
+          .MC label.q-checkbox {
+            display: none !important
+          }
+
+          input,
+          textarea {
+            background-color: #fbfbfb !important;
+            border: 1px solid #949494 !important
+          }
+
+          .MC li>input {
+            width: 20px !important;
+            height: 20px !important;
+            left: 10px;
+            vertical-align: middle;
+            margin-right: 10px;
+            border-radius: 3px;
+            border: 1px solid #9b9b9b;
+            border-image: initial;
+            background: #fbfbfb !important;
+            display: block !important;
+            margin: 12px 4px;
+            position: absolute !important;
+            opacity: 1 !important
+          }
+
+          .MC li>input:focus {
+            outline: 3px solid #3dbbdb !important
+          }
+
+          #Header {
+            padding-top: 1rem !important
+          }
+
+          #Footer {
+            margin-top: 0 !important
+          }
+
+          div#Plug {
+            height: 0;
+            overflow: hidden
+          }
+
+
+          @media screen and (max-width: 62rem) {
+            .form a {
+              font-size: .8666666666666667rem
+            }
+
+            .SkinInner {
+              padding-top: 0px !important
+            }
+          }
+        </style>
+      </form>
+    </div>
+  </div>
+</body>
+
+</html>
