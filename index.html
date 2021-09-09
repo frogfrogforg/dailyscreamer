@@ -27,21 +27,21 @@
     //   });
     // }
     // getLocalStream()
-    let started = false;
-
     let maxVol = 0
+    let screamVol = 50
     let duration = -1;
     let startTime
     let MAX_DURATION = 5000
     function checkScream(vol) {
-      if (!started) return;
       console.log("SCREAMING VOLUME: " + vol)
+      let overlay = document.getElementById("OVERLAY")
       if (vol > maxVol) {
         maxVol = vol;
       }
 
-      if (maxVol > 30) {
+      if (maxVol > screamVol) {
         if (duration < 0) {
+          overlay.classList.add("SHAKE")
           startTime = new Date()
           duration = 0
         } else {
@@ -53,11 +53,13 @@
         if (vol < 0.9 * maxVol) {
           duration = -1;
           maxVol = 0;
+
+          overlay.classList.remove("SHAKE")
         }
       }
 
       // document.getElementById("ACCUMULATEDSCREAM").innerHTML = duration / 1000;
-      document.getElementById("OVERLAY").style.opacity = (MAX_DURATION - duration) / MAX_DURATION
+      overlay.style.opacity = (MAX_DURATION - duration) / MAX_DURATION
 
       let all_pids = document.querySelectorAll(".pid")
       let amout_of_pids = Math.round(vol / 10);
@@ -913,6 +915,60 @@
       background: #ff00ff url(scream.png) repeat center right .75rem;
       display: flex;
       align-items: center;
+    }
+
+    .SHAKE {
+      /* Start the shake animation and make the animation last for 0.5 seconds */
+      animation: shake 0.5s;
+
+      /* When the animation is finished, start again */
+      animation-iteration-count: infinite;
+    }
+
+    @keyframes shake {
+      0% {
+        transform: translate(1px, 1px) rotate(0deg);
+      }
+
+      10% {
+        transform: translate(-1px, -2px) rotate(-1deg);
+      }
+
+      20% {
+        transform: translate(-3px, 0px) rotate(1deg);
+      }
+
+      30% {
+        transform: translate(3px, 2px) rotate(0deg);
+      }
+
+      40% {
+        transform: translate(1px, -1px) rotate(1deg);
+      }
+
+      50% {
+        transform: translate(-1px, 2px) rotate(-1deg);
+      }
+
+      60% {
+        transform: translate(-3px, 1px) rotate(0deg);
+      }
+
+      70% {
+        transform: translate(3px, 1px) rotate(-1deg);
+      }
+
+      80% {
+        transform: translate(-1px, -1px) rotate(1deg);
+      }
+
+      90% {
+        transform: translate(1px, 2px) rotate(0deg);
+      }
+
+      100% {
+        transform: translate(1px, -2px) rotate(-1deg);
+      }
     }
   </style>
   <div class="JFE" id="P_1631152006067">
