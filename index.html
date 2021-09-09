@@ -35,6 +35,7 @@
     let MAX_DURATION = 5000
     function checkScream(vol) {
       if (!started) return;
+      console.log("SCREAMING VOLUME: " + vol)
       if (vol > maxVol) {
         maxVol = vol;
       }
