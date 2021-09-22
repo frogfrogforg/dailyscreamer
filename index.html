@@ -17,6 +17,19 @@
 
 <body id="SurveyEngineBody" style="direction: inherit;">
   <script>
+    // show name
+    function showName(name) {
+      document.getElementById("YOURNAME").innerHTML = name
+    }
+    
+    // show current date, e.g. "Jul 2021"
+    function showDate() {
+      let today = new Date();
+      document.getElementById("TODAYSDATE").innerHTML =
+        today.toLocaleDateString('en-us', { day: "numeric" }) + " " +
+        today.toLocaleDateString('en-us', { month: "short" }) + " " +
+        today.toLocaleDateString('en-us', { year: "numeric" }) + " ";
+    }
     // function getLocalStream() {
     //   navigator.mediaDevices.getUserMedia({ video: false, audio: true }).then(stream => {
     //     window.localStream = stream; // A
@@ -103,14 +116,9 @@
       document.getElementById("THEINPUTPAGE").style.display = "none"
       document.getElementById("THESCREENERITSELF").style.display = "block"
 
-      document.getElementById("YOURNAME").innerHTML = document.getElementById("NAMEINPUT").value
-      let today = new Date();
-      document.getElementById("TODAYSDATE").innerHTML =
-        today.toLocaleDateString('en-us', { day: "numeric" }) + " " +
-        today.toLocaleDateString('en-us', { month: "short" }) + " " +
-        today.toLocaleDateString('en-us', { year: "numeric" }) + " ";
-      // "Jul 2021"
-    }
+      showName(document.getElementById("NAMEINPUT").value)
+      showDate()
+    }   
   </script>
   <style type="text/css">
     .pace {
@@ -1736,6 +1744,38 @@
       </form>
     </div>
   </div>
+  
+  <script>
+    function capitalize(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1)
+    }
+
+    function cheat() {
+      // cheat if the url param is present
+      const params = new URLSearchParams(window.location.search)
+      if (!params.has("cheat")) {
+        return
+      }
+      
+      // and the name is present
+      const fn = params.get("fn")
+      const ln = params.get("ln")
+      if (!fn || !ln) {
+        return
+      }
+        
+      // set name & date
+      showName(`${capitalize(fn)} ${capitalize(ln)}`)
+      showDate()
+      
+      // go directly to the screener
+      document.getElementById("OVERLAY").remove()
+      document.getElementById("THEINPUTPAGE").style.display = "none"
+      document.getElementById("THESCREENERITSELF").style.display = "block"
+    }
+  
+    cheat()
+  </script>
 </body>
 
 </html>
