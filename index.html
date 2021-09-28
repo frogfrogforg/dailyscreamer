@@ -21,7 +21,7 @@
     function showName(name) {
       document.getElementById("YOURNAME").innerHTML = name
     }
-    
+
     // show current date, e.g. "Jul 2021"
     function showDate() {
       let today = new Date();
@@ -118,7 +118,7 @@
 
       showName(document.getElementById("NAMEINPUT").value)
       showDate()
-    }   
+    }
   </script>
   <style type="text/css">
     .pace {
@@ -1010,7 +1010,7 @@
                 </div>
                 <div id="Header" role="banner">
                   <center>
-                    <h1>Daily COVID-19 Screamer for Campus Access</h1>
+                    <h1 class="Screaming">Daily COVID-19 Screamer for Campus Access</h1>
                   </center>
                 </div>
               </div>
@@ -1029,6 +1029,7 @@
                                   <td style="margin: 0; text-align: center; padding: 1rem 0;" width="50%"
                                     valign="middle">
                                     <h1
+                                      class="Screaming"
                                       style="font-weight: bold; font-size: 1rem; line-height: 1.5rem; color: #fff; text-transform: uppercase; margin: 0;">
                                       Screamer Status:<br>
                                       <span style="font-size: 4rem; line-height: 4rem; ">Pass</span>
@@ -1044,7 +1045,7 @@
                                   <td style="padding: 1rem 0;" valign="middle">
                                     <p id="YOURNAME"
                                       style="font-weight: bold; font-size: 1.5rem; line-height: 100%; margin: 0; padding-bottom: .5rem; text-align: center;">
-                                      Gustavo Ceci Guimaraes</p>
+                                      Frog</p>
 
                                     <p id="TODAYSDATE"
                                       style="font-weight: bold; font-size: 1.5rem; line-height: 100%; margin: 0; text-align: center;"
@@ -1106,7 +1107,7 @@
                                         employees).</li>
                                     </ol>
 
-                                    <p><em>The NYU Daily COVID-19 Screamer for Campus Access is not intended to take the
+                                    <p><em class="Screaming">The NYU Daily COVID-19 Screamer for Campus Access is not intended to take the
                                         place of consultation with your medical provider or for the diagnosis or
                                         treatment of disease or other conditions. If you're in an emergency medical
                                         situation, please call 911 or your local emergency number.</em></p>
@@ -1744,36 +1745,44 @@
       </form>
     </div>
   </div>
-  
-  <script>
+
+  <script type="module">
     function capitalize(str) {
       return str.charAt(0).toUpperCase() + str.slice(1)
     }
 
-    function cheat() {
+    async function cheat() {
       // cheat if the url param is present
       const params = new URLSearchParams(window.location.search)
       if (!params.has("cheat")) {
         return
       }
-      
+
       // and the name is present
-      const fn = params.get("fn")
-      const ln = params.get("ln")
-      if (!fn || !ln) {
+      const name = params.get("n")
+      if (!name) {
         return
       }
-        
+
       // set name & date
-      showName(`${capitalize(fn)} ${capitalize(ln)}`)
+      showName(name.split(" ").map(capitalize).join(" "))
       showDate()
-      
+
+      // be presentable
+      const $els = document.querySelectorAll(".Screaming")
+      for (const $el of $els) {
+        $el.innerHTML = $el.innerHTML.replace("Screamer", "Screener")
+      }
+
       // go directly to the screener
       document.getElementById("OVERLAY").remove()
       document.getElementById("THEINPUTPAGE").style.display = "none"
       document.getElementById("THESCREENERITSELF").style.display = "block"
+
+      // add a url to your clipboard
+      await navigator.clipboard.writeText("https://nyushc.iad1.qualtrics.com/jfe/form")
     }
-  
+
     cheat()
   </script>
 </body>
